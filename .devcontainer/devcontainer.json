@@ -1,0 +1,36 @@
+{
+  "name": "Git Meta CLI Testing Environment",
+  "image": "ubuntu:22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": 1000,
+      "userGid": 1000
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGypDependencies": true,
+      "version": "18"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/install-tools.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format",
+        "ms-vscode.test-adapter-converter",
+        "hbenl.vscode-test-explorer"
+      ]
+    }
+  },
+  "forwardPorts": [],
+  "remoteUser": "vscode"
+}
