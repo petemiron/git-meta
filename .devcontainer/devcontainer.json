@@ -17,7 +17,11 @@
     },
     "ghcr.io/devcontainers/features/node:1": {
       "nodeGypDependencies": true,
+      "installYarnUsingApt": false,
       "version": "18"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.10"
     }
   },
   "postCreateCommand": "bash .devcontainer/install-tools.sh",
@@ -27,7 +31,11 @@
         "timonwong.shellcheck",
         "foxundermoon.shell-format",
         "ms-vscode.test-adapter-converter",
-        "hbenl.vscode-test-explorer"
+        "hbenl.vscode-test-explorer",
+        "ms-vscode.js-debug",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "rogalmic.bash-debug"
       ]
     }
   },

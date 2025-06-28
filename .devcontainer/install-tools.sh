@@ -8,8 +8,21 @@ echo "Installing CLI testing tools..."
 # Update package list
 sudo apt-get update
 
-# Install dependencies
-sudo apt-get install -y curl wget build-essential libkrb5-dev
+# Install dependencies for git-meta and nodegit compilation
+sudo apt-get install -y \
+    curl \
+    wget \
+    build-essential \
+    libkrb5-dev \
+    pkg-config \
+    libssl-dev \
+    zlib1g-dev \
+    file \
+    python3 \
+    python3-pip \
+    make \
+    g++ \
+    cmake
 
 # Install Bats (Bash Automated Testing System)
 echo "Installing Bats..."
@@ -38,3 +51,19 @@ shellspec --version
 hyperfine --version
 
 echo "CLI testing tools installation complete!"
+
+# Install git-meta npm dependencies
+echo "Installing git-meta npm dependencies..."
+cd /workspaces/git-meta/node
+npm install --legacy-peer-deps
+
+# Verify git-meta works
+echo "Verifying git-meta installation..."
+if ./bin/git-meta version; then
+    echo "✅ git-meta is working correctly!"
+else
+    echo "❌ git-meta installation failed"
+    exit 1
+fi
+
+echo "🎉 Development environment setup complete!"

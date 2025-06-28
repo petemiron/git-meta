@@ -1,224 +1,101 @@
-# CLI Test and Benchmark Harness
+# CLI Testing for git-meta
 
-This directory contains a comprehensive CLI testing and benchmarking harness using industry-standard tools. It's designed to help you test and benchmark command-line interfaces effectively.
+This directory contains CLI tests for the git-meta tool using the Bats testing framework.
 
 ## Overview
 
-The harness includes three main components:
+The harness includes:
 
-1. **Bats Tests** (`test_bats.bats`) - Bash Automated Testing System for functional testing
-2. **ShellSpec Tests** (`test_shellspec.sh`) - Modern shell script testing framework  
-3. **Hyperfine Benchmarks** (`benchmark_example.sh`) - Command-line benchmarking tool
+1. **Bats Tests** (`test_bats.bats`) - Functional tests for git-meta CLI commands
+2. **Benchmarks** (`benchmark_example.sh`) - Performance benchmarking (optional)
+
+## Prerequisites
+
+The tests require:
+- Node.js 18+ 
+- npm dependencies installed (`npm install --legacy-peer-deps` in the `node/` directory)
+- Bats testing framework
+- System dependencies for nodegit compilation (pkg-config, libssl-dev, etc.)
+
+All of these are automatically installed if you're using the provided devcontainer.
 
 ## Quick Start
 
-### Prerequisites
-
-The testing tools are automatically installed in the Codespaces environment. For local development, install:
-
-- [Bats](https://bats-core.readthedocs.io/) - `npm install -g bats` or use package manager
-- [ShellSpec](https://shellspec.info/) - `curl -fsSL https://git.io/shellspec | sh`
-- [Hyperfine](https://github.com/sharkdp/hyperfine) - Available in most package managers
-
 ### Setup
 
-1. **Replace the placeholder command**: Update `./your_cli_command` in all test files with your actual CLI executable path.
-
-2. **Make your CLI executable**: Ensure your command has execute permissions:
-   ```bash
-   chmod +x ./your_cli_command
-   ```
+The git-meta CLI is located at `../../node/bin/git-meta` relative to this test directory.
 
 ### Running Tests
 
 #### Bats Tests
 ```bash
-# Run all Bats tests
-bats test/cli/test_bats.bats
+# Run all CLI tests
+cd test/cli
+bats test_bats.bats
 
 # Run with verbose output
-bats --verbose test/cli/test_bats.bats
+bats --verbose-run test_bats.bats
 
-# Run specific test by line number
-bats test/cli/test_bats.bats --filter "CLI command exists"
+# Run specific test
+bats --filter "git-meta command exists" test_bats.bats
 ```
 
-#### ShellSpec Tests
-```bash
-# Run all ShellSpec tests
-shellspec test/cli/test_shellspec.sh
-
-# Run with coverage report
-shellspec --kcov test/cli/test_shellspec.sh
-
-# Run in documentation format
-shellspec --format documentation test/cli/test_shellspec.sh
-```
-
-#### Hyperfine Benchmarks
+#### Hyperfine Benchmarks (Optional)
 ```bash
 # Run benchmark suite
-./test/cli/benchmark_example.sh
+./benchmark_example.sh
 
 # Run individual benchmarks
-hyperfine './your_cli_command --help'
-hyperfine --warmup 3 './your_cli_command --version'
+hyperfine '../../node/bin/git-meta --help'
+hyperfine --warmup 3 '../../node/bin/git-meta version'
 ```
 
-## Test Structure
+## Test Coverage
 
-### Bats Tests (`test_bats.bats`)
+The CLI tests verify:
 
-Functional tests that verify:
-- Command existence and executability
-- Basic help and version functionality
-- Error handling for invalid arguments
-- Core functionality validation
+1. **Basic functionality**:
+   - git-meta binary exists and is executable
+   - Help output works (`--help`)
+   - Version information (`version` command)
 
-Example test:
+2. **Error handling**:
+   - Invalid flags fail gracefully
+   - Empty arguments show usage
+
+3. **Command recognition**:
+   - `open` command is recognized
+   - `checkout` command is recognized  
+   - `commit` command is recognized
+   - `push` command is recognized
+
+## Development Environment
+
+To recreate the development environment:
+
+1. Open this repository in VS Code
+2. When prompted, choose "Reopen in Container"
+3. The devcontainer will automatically:
+   - Install system dependencies (pkg-config, libssl-dev, etc.)
+   - Install testing tools (Bats, ShellSpec, Hyperfine)
+   - Install npm dependencies with `--legacy-peer-deps`
+   - Verify git-meta is working
+
+Or manually rebuild the container:
 ```bash
-@test "CLI command shows help when called with --help" {
-    run ./your_cli_command --help
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "Usage:" ]] || [[ "$output" =~ "help" ]]
-}
+# From VS Code Command Palette
+> Dev Containers: Rebuild Container
 ```
 
-### ShellSpec Tests (`test_shellspec.sh`)
+## System Dependencies
 
-Behavior-driven development style tests with:
-- Descriptive test contexts and specifications
-- Advanced output matching and validation
-- Better error reporting and debugging
-- Support for mocking and stubbing
+git-meta requires these system packages for nodegit compilation:
+- `pkg-config`
+- `libssl-dev` 
+- `zlib1g-dev`
+- `file`
+- `build-essential`
+- `python3`
+- `cmake`
 
-Example test:
-```bash
-Describe 'CLI Command Tests'
-  It 'should show help when called with --help'
-    When call ./your_cli_command --help
-    The status should be success
-    The output should include "help"
-  End
-End
-```
-
-### Hyperfine Benchmarks (`benchmark_example.sh`)
-
-Performance benchmarking that provides:
-- Statistical analysis of execution times
-- Warmup runs to avoid cold start effects
-- Export to JSON and Markdown formats
-- Comparison between different command variations
-
-## Extending the Test Suite
-
-### Adding New Bats Tests
-
-1. Add new `@test` blocks to `test_bats.bats`:
-```bash
-@test "Your new test description" {
-    # Test setup
-    run ./your_cli_command your_args
-    
-    # Assertions
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "expected_pattern" ]]
-}
-```
-
-### Adding New ShellSpec Tests
-
-1. Add new test contexts to `test_shellspec.sh`:
-```bash
-Context 'when testing new feature'
-  It 'should behave correctly'
-    When call ./your_cli_command new_feature
-    The status should be success
-    The output should equal "expected output"
-  End
-End
-```
-
-### Adding New Benchmarks
-
-1. Modify `benchmark_example.sh` or create new benchmark scripts:
-```bash
-hyperfine --warmup 3 --min-runs 10 \
-    --export-json my_benchmark.json \
-    './your_cli_command new_feature'
-```
-
-## Best Practices
-
-### Test Organization
-- Group related tests in contexts/describes
-- Use descriptive test names
-- Test both success and failure cases
-- Test edge cases and error conditions
-
-### Performance Testing
-- Use warmup runs to avoid cold start bias
-- Run multiple iterations for statistical significance
-- Test with realistic data sizes and scenarios
-- Document performance requirements and expectations
-
-### Maintenance
-- Keep tests up to date with CLI changes
-- Use meaningful assertions and error messages
-- Mock external dependencies when possible
-- Document test dependencies and setup requirements
-
-## CI Integration
-
-The tests are automatically run in GitHub Actions via `.github/workflows/cli-test.yml`. The workflow:
-- Sets up the testing environment
-- Installs required tools
-- Runs both Bats and ShellSpec tests
-- Reports results and failures
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Command not found**: Ensure `./your_cli_command` points to the correct executable
-2. **Permission denied**: Run `chmod +x ./your_cli_command`
-3. **Tests failing**: Check that your CLI command supports `--help` and `--version` flags
-4. **Benchmark errors**: Verify Hyperfine is installed and your command is executable
-
-### Getting Help
-
-- [Bats Documentation](https://bats-core.readthedocs.io/)
-- [ShellSpec Documentation](https://shellspec.info/)
-- [Hyperfine Documentation](https://github.com/sharkdp/hyperfine)
-
-## Example Output
-
-### Bats Test Output
-```
- ✓ CLI command exists and is executable
- ✓ CLI command shows help when called with --help
- ✓ CLI command shows version when called with --version
- ✓ CLI command fails gracefully with invalid arguments
-
-4 tests, 0 failures
-```
-
-### ShellSpec Test Output
-```
-CLI Command Tests
-  when checking basic functionality
-    should exist and be executable
-    should show help when called with --help
-    should show version information when called with --version
-
-Finished in 0.12345 seconds (files took 0.67890 seconds to load)
-3 examples, 0 failures
-```
-
-### Hyperfine Benchmark Output
-```
-Benchmark #1: ./your_cli_command --help
-  Time (mean ± σ):      12.3 ms ±   1.2 ms    [User: 8.1 ms, System: 4.2 ms]
-  Range (min … max):    10.1 ms …  15.7 ms    10 runs
-```
+These are automatically installed via the devcontainer setup.

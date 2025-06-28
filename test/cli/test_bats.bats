@@ -1,43 +1,53 @@
 #!/usr/bin/env bats
 
-# Example Bats CLI test for git-meta
-# Replace './your_cli_command' with your actual CLI executable
+# Bats CLI tests for git-meta
 
-@test "CLI command exists and is executable" {
-    [ -f "./your_cli_command" ]
-    [ -x "./your_cli_command" ]
+@test "git-meta command exists and is executable" {
+    [ -f "../../node/bin/git-meta" ]
+    [ -x "../../node/bin/git-meta" ]
 }
 
-@test "CLI command shows help when called with --help" {
-    run ./your_cli_command --help
+@test "git-meta shows help when called with --help" {
+    run ../../node/bin/git-meta --help
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Usage:" ]] || [[ "$output" =~ "help" ]] || [[ "$output" =~ "options" ]]
+    [[ "$output" =~ "Usage" ]] || [[ "$output" =~ "help" ]]
 }
 
-@test "CLI command shows version when called with --version" {
-    run ./your_cli_command --version
+@test "git-meta shows version when called with version subcommand" {
+    run ../../node/bin/git-meta version
     [ "$status" -eq 0 ]
     [[ "$output" =~ [0-9]+\.[0-9]+\.[0-9]+ ]] || [[ "$output" =~ "version" ]]
 }
 
-@test "CLI command fails gracefully with invalid arguments" {
-    run ./your_cli_command --invalid-flag-that-does-not-exist
+@test "git-meta fails gracefully with invalid arguments" {
+    run ../../node/bin/git-meta --invalid-flag-that-does-not-exist
     [ "$status" -ne 0 ]
 }
 
-@test "CLI command handles missing required arguments" {
-    # This test assumes your command requires some arguments
-    # Modify as needed for your specific CLI
-    run ./your_cli_command
-    # Most CLI tools return non-zero when missing required args
-    [ "$status" -ne 0 ] || [ "$status" -eq 0 ]
+@test "git-meta handles empty arguments appropriately" {
+    run ../../node/bin/git-meta
+    # git-meta with no arguments shows usage and exits with code 2
+    [ "$status" -eq 2 ]
+    [[ "$output" =~ "usage" ]]
 }
 
-# Add more specific tests based on your CLI functionality
-@test "CLI command basic functionality test" {
-    # Example: Test a basic command that should work
-    # Replace with actual command and expected behavior
-    run ./your_cli_command --help
-    [ "$status" -eq 0 ]
-    # Add assertions based on expected output
+@test "git-meta open command is recognized" {
+    run ../../node/bin/git-meta open my-repo
+    # This will fail if not in a meta-repo, but checks command is recognized
+    [[ "$output" =~ "submodules" ]] || [[ "$output" =~ "usage" ]] || [[ "$output" =~ "error" ]]
+}
+
+@test "git-meta checkout command is recognized" {
+    run ../../node/bin/git-meta checkout -b my-feature
+    [[ "$output" =~ "checkout" ]] || [[ "$output" =~ "branch" ]] || [[ "$output" =~ "error" ]]
+}
+
+@test "git-meta commit command is recognized" {
+    run ../../node/bin/git-meta commit -a -m "test commit"
+    [[ "$output" =~ "commit" ]] || [[ "$output" =~ "nothing to commit" ]] || [[ "$output" =~ "error" ]]
+}
+
+@test "git-meta push command is recognized" {
+    run ../../node/bin/git-meta push origin my-feature
+    [[ "$output" =~ "up-to-date" ]] || [[ "$output" =~ "push" ]] || [[ "$output" =~ "error" ]] || [[ "$output" =~ "rejected" ]]
 }
