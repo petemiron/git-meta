@@ -1,0 +1,102 @@
+name: CLI Tests
+
+on:
+  push:
+    branches: [ main, master ]
+    paths: 
+      - 'test/cli/**'
+      - '.github/workflows/cli-test.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'test/cli/**'  
+      - '.github/workflows/cli-test.yml'
+  workflow_dispatch:
+
+jobs:
+  cli-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libkrb5-dev curl wget
+        
+    - name: Install Bats
+      run: |
+        git clone https://github.com/bats-core/bats-core.git /tmp/bats-core
+        cd /tmp/bats-core
+        sudo ./install.sh /usr/local
+        
+    - name: Install ShellSpec
+      run: |
+        curl -fsSL https://git.io/shellspec | sh -s -- --yes
+        sudo ln -sf ~/.local/lib/shellspec/shellspec /usr/local/bin/shellspec
+        
+    - name: Install Hyperfine
+      run: |
+        HYPERFINE_VERSION="1.18.0"
+        wget "https://github.com/sharkdp/hyperfine/releases/download/v${HYPERFINE_VERSION}/hyperfine_${HYPERFINE_VERSION}_amd64.deb" -O /tmp/hyperfine.deb
+        sudo dpkg -i /tmp/hyperfine.deb
+        
+    - name: Verify tool installations
+      run: |
+        echo "Checking installed versions..."
+        bats --version
+        shellspec --version  
+        hyperfine --version
+        
+    - name: Create placeholder CLI command for testing
+      run: |
+        # Create a simple placeholder command for the test framework to use
+        cat > ./your_cli_command << 'EOF'
+        #!/bin/bash
+        case "$1" in
+          --help|-h)
+            echo "Usage: your_cli_command [options]"
+            echo "A placeholder CLI command for testing"
+            echo "Options:"
+            echo "  --help, -h     Show this help message"
+            echo "  --version, -v  Show version information"
+            exit 0
+            ;;
+          --version|-v)
+            echo "your_cli_command version 1.0.0"
+            exit 0
+            ;;
+          --invalid-flag-that-does-not-exist)
+            echo "Error: unknown option '$1'" >&2
+            exit 1
+            ;;
+          *)
+            echo "Error: unknown argument '$1'. Use --help for usage information." >&2
+            exit 1
+            ;;
+        esac
+        EOF
+        chmod +x ./your_cli_command
+        
+    - name: Run Bats tests
+      run: |
+        echo "Running Bats tests..."
+        bats test/cli/test_bats.bats
+        
+    - name: Run ShellSpec tests  
+      run: |
+        echo "Running ShellSpec tests..."
+        shellspec test/cli/test_shellspec.sh
+        
+    - name: Run quick benchmark (optional)
+      run: |
+        echo "Running a quick performance check..."
+        # Run a minimal benchmark to verify hyperfine works
+        hyperfine --warmup 1 --min-runs 3 './your_cli_command --help'
+        
+    - name: Clean up
+      run: |
+        rm -f ./your_cli_command
+        echo "CLI tests completed successfully!"
